@@ -1,5 +1,7 @@
 # GhostPixel-AI
 
+![GhostPixel-AI Logo](assets/GhosPixelAPI.jpeg)
+
 GhostPixel-AI is a production-oriented repository scaffold for automated steganography detection on the ALASKA2 dataset. The stack uses Python 3.12+, PyTorch with Lightning, FastAPI for inference, Albumentations for forensic-safe preprocessing, and Pydantic v2 for configuration and response validation.
 
 ## Repository Layout
@@ -48,6 +50,15 @@ python3.12 -m venv .ghostenv
 source .ghostenv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
+```
+
+For local quality checks:
+
+```bash
+pip install -r requirements-dev.txt
+ruff check .
+ruff format --check .
+pytest
 ```
 
 ## Training
@@ -102,3 +113,7 @@ docker compose up --build
 ```
 
 Mount checkpoints into `./checkpoints` and dataset access into `./data`.
+
+## CI
+
+The repository includes a GitHub Actions workflow at `.github/workflows/ci.yml` that runs linting, formatting checks, Python compile smoke tests, synthetic unit tests, and a Docker build without requiring the full ALASKA2 dataset.
