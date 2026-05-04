@@ -9,6 +9,8 @@ GhostPixel-AI is a production-oriented repository scaffold for automated stegano
 ```text
 GhostPixel-AI/
 ├── api/                 # FastAPI app, schemas, and inference dependencies
+│   ├── static/          # Browser-facing styles for the test console
+│   └── templates/       # FastAPI-served HTML UI
 ├── data/                # Dataset module, transforms, and raw dataset mount point
 │   └── raw/             # Symlink target for ALASKA2 root
 ├── models/              # Residual layer, backbone model, Lightning wrapper
@@ -67,14 +69,38 @@ pytest
 python scripts/train.py
 ```
 
+Equivalent module form:
+
+```bash
+python -m scripts.train
+```
+
 Useful environment variables:
 
 ```bash
 export GHOSTPIXEL_DATA_ROOT=data/raw
-export GHOSTPIXEL_BACKBONE_NAME=efficientnet_v2_s
-export GHOSTPIXEL_BATCH_SIZE=16
-export GHOSTPIXEL_IMAGE_SIZE=512
+export GHOSTPIXEL_BACKBONE_NAME=mobilenet_v3_small
+export GHOSTPIXEL_PRETRAINED_BACKBONE=true
+export GHOSTPIXEL_FREEZE_BACKBONE=true
+export GHOSTPIXEL_BATCH_SIZE=8
+export GHOSTPIXEL_IMAGE_SIZE=224
+export GHOSTPIXEL_NUM_WORKERS=2
+export GHOSTPIXEL_LOSS_NAME=cross_entropy
+export GHOSTPIXEL_LABEL_SMOOTHING=0.05
+export GHOSTPIXEL_USE_CLASS_WEIGHTS=true
+export GHOSTPIXEL_ACCUMULATE_GRAD_BATCHES=2
+export GHOSTPIXEL_TRAIN_BATCHES_PER_EPOCH=2000
+export GHOSTPIXEL_VAL_BATCHES_PER_EPOCH=200
+export GHOSTPIXEL_SCHEDULER_T_MAX=30
+export GHOSTPIXEL_STAGED_FINETUNING=false
+export GHOSTPIXEL_BACKBONE_FINETUNE_LEARNING_RATE=0.00005
 ```
+
+The default long-run profile now favors stability over aggressive fine-tuning: frozen pretrained backbone, `30` epochs, `2000` train batches per epoch, `200` validation batches, cross-entropy with label smoothing, optional automatic class weighting, and a longer cosine schedule. Focal loss is also supported by setting `GHOSTPIXEL_LOSS_NAME=focal`.
+
+Each validation epoch now also prints a per-class report with precision, recall, F1, target share, prediction share, and the confusion matrix so long runs are easier to interpret.
+
+When `GHOSTPIXEL_VAL_BATCHES_PER_EPOCH` is capped, the validation split is deterministically shuffled before batching so the subset remains class-mixed instead of evaluating only the first class on disk.
 
 ## Evaluation
 
@@ -90,6 +116,14 @@ Run locally:
 ```bash
 uvicorn api.main:app --reload
 ```
+
+Browser test console:
+
+```text
+http://127.0.0.1:8000/
+```
+
+![GhostPixel-AI Web App](assets/webapp-screenshot.png)
 
 Inference request example:
 

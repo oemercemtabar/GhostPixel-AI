@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import lightning as L
+import torch
 from torch.utils.data import DataLoader
 
 from data.dataset import GhostPixelDataset
@@ -13,9 +14,9 @@ class GhostPixelDataModule(L.LightningDataModule):
     def __init__(
         self,
         data_root: str | Path,
-        image_size: int = 512,
-        batch_size: int = 16,
-        num_workers: int = 4,
+        image_size: int = 256,
+        batch_size: int = 4,
+        num_workers: int = 2,
         balance_strategy: str = "oversample",
     ) -> None:
         super().__init__()
@@ -24,6 +25,9 @@ class GhostPixelDataModule(L.LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.balance_strategy = balance_strategy
+        self.pin_memory = torch.cuda.is_available()
+        self.persistent_workers = self.num_workers > 0
+        self.prefetch_factor = 2 if self.num_workers > 0 else None
 
         self.train_dataset: GhostPixelDataset | None = None
         self.val_dataset: GhostPixelDataset | None = None
@@ -54,35 +58,38 @@ class GhostPixelDataModule(L.LightningDataModule):
     def train_dataloader(self) -> DataLoader:
         if self.train_dataset is None:
             raise RuntimeError("DataModule.setup() must be called before requesting train_dataloader")
-        return DataLoader(
-            self.train_dataset,
-            batch_size=self.batch_size,
-            shuffle=True,
-            num_workers=self.num_workers,
-            pin_memory=True,
-            persistent_workers=self.num_workers > 0,
-        )
+        return self._build_dataloader(self.train_dataset, shuffle=True)
 
     def val_dataloader(self) -> DataLoader:
         if self.val_dataset is None:
             raise RuntimeError("DataModule.setup() must be called before requesting val_dataloader")
-        return DataLoader(
-            self.val_dataset,
-            batch_size=self.batch_size,
-            shuffle=False,
-            num_workers=self.num_workers,
-            pin_memory=True,
-            persistent_workers=self.num_workers > 0,
-        )
+        return self._build_dataloader(self.val_dataset, shuffle=False)
 
     def test_dataloader(self) -> DataLoader:
         if self.test_dataset is None:
             raise RuntimeError("DataModule.setup() must be called before requesting test_dataloader")
+        return self._build_dataloader(self.test_dataset, shuffle=False)
+
+    def _build_dataloader(self, dataset: GhostPixelDataset, shuffle: bool) -> DataLoader:
         return DataLoader(
-            self.test_dataset,
+            dataset,
             batch_size=self.batch_size,
-            shuffle=False,
+            shuffle=shuffle,
             num_workers=self.num_workers,
-            pin_memory=True,
-            persistent_workers=self.num_workers > 0,
+            pin_memory=self.pin_memory,
+            persistent_workers=self.persistent_workers,
+            prefetch_factor=self.prefetch_factor,
         )
+
+    def get_train_class_weights(self, power: float = 1.0) -> list[float]:
+        if self.train_dataset is None:
+            raise RuntimeError("DataModule.setup() must be called before computing class weights")
+
+        counts = torch.zeros(len(self.train_dataset.class_names), dtype=torch.float32)
+        for sample in self.train_dataset.samples:
+            counts[sample.label] += 1.0
+
+        weights = counts.sum() / counts.clamp_min(1.0)
+        weights = weights.pow(power)
+        weights = weights / weights.mean().clamp_min(1e-8)
+        return weights.tolist()

@@ -1,0 +1,247 @@
+:root {
+  --bg: #141c20;
+  --bg-soft: #1b252b;
+  --panel: rgba(9, 16, 20, 0.78);
+  --panel-border: rgba(105, 207, 255, 0.24);
+  --text: #edf4f8;
+  --muted: #99a9b4;
+  --accent: #41c8ff;
+  --accent-strong: #008fce;
+  --success: #31d0a4;
+  --error: #ff677d;
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Space Grotesk", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(65, 200, 255, 0.18), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(0, 143, 206, 0.18), transparent 24%),
+    linear-gradient(135deg, #10171a, #1c262c 45%, #121a1e);
+}
+
+.shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0 72px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.hero-copy,
+.hero-brand,
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+.hero-copy {
+  padding: 32px;
+}
+
+.hero-brand {
+  padding: 20px;
+}
+
+.hero-brand img {
+  display: block;
+  width: 100%;
+  border-radius: 18px;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-size: 0.78rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.6rem, 5vw, 4.8rem);
+  line-height: 0.95;
+}
+
+.lede {
+  max-width: 48rem;
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.console {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.panel {
+  padding: 24px;
+}
+
+.dropzone {
+  display: grid;
+  gap: 8px;
+  border: 1px dashed rgba(65, 200, 255, 0.45);
+  border-radius: 18px;
+  padding: 28px 20px;
+  background: linear-gradient(180deg, rgba(65, 200, 255, 0.06), rgba(65, 200, 255, 0.01));
+  cursor: pointer;
+}
+
+.dropzone input {
+  display: none;
+}
+
+.dropzone-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.dropzone-subtitle,
+.muted,
+.result-empty,
+dt {
+  color: var(--muted);
+}
+
+button {
+  width: 100%;
+  margin-top: 18px;
+  border: 0;
+  border-radius: 14px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #07131a;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.preview-frame {
+  display: grid;
+  place-items: center;
+  min-height: 320px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+#preview-image {
+  display: none;
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+}
+
+#preview-placeholder {
+  padding: 24px;
+  text-align: center;
+}
+
+.result-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.result-grid div {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+dt {
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+dd {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.status-pill {
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-pill.idle {
+  background: rgba(153, 169, 180, 0.14);
+  color: var(--muted);
+}
+
+.status-pill.busy {
+  background: rgba(65, 200, 255, 0.14);
+  color: var(--accent);
+}
+
+.status-pill.success {
+  background: rgba(49, 208, 164, 0.14);
+  color: var(--success);
+}
+
+.status-pill.error {
+  background: rgba(255, 103, 125, 0.16);
+  color: var(--error);
+}
+
+.error-message {
+  margin: 18px 0 0;
+  color: var(--error);
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 980px) {
+  .hero,
+  .console {
+    grid-template-columns: 1fr;
+  }
+
+  .shell {
+    width: min(100% - 24px, 780px);
+    padding-top: 24px;
+  }
+}
