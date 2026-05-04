@@ -35,6 +35,16 @@ def test_healthcheck() -> None:
     assert response.json() == {"status": "ok"}
 
 
+def test_root_renders_web_console() -> None:
+    client = TestClient(app)
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert "GhostPixel-AI" in response.text
+    assert "Run Detection" in response.text
+
+
 def test_detect_rejects_non_image_upload() -> None:
     client = TestClient(app)
 
@@ -64,4 +74,3 @@ def test_detect_returns_prediction_payload() -> None:
         "confidence_score": 0.91,
         "explainability_map": None,
     }
-

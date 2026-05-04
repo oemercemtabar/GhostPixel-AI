@@ -29,6 +29,13 @@ class GhostPixelPredictor:
                 num_classes=self.settings.num_classes,
                 backbone_name=self.settings.backbone_name,
                 learning_rate=self.settings.learning_rate,
+                pretrained=self.settings.pretrained_backbone,
+                freeze_backbone=self.settings.freeze_backbone,
+                scheduler_t_max=self.settings.scheduler_t_max,
+                loss_name=self.settings.loss_name,
+                label_smoothing=self.settings.label_smoothing,
+                focal_gamma=self.settings.focal_gamma,
+                class_weights=self.settings.class_weights,
             )
             return module.model
 
@@ -36,6 +43,13 @@ class GhostPixelPredictor:
             num_classes=self.settings.num_classes,
             backbone_name=self.settings.backbone_name,
             learning_rate=self.settings.learning_rate,
+            pretrained=self.settings.pretrained_backbone,
+            freeze_backbone=self.settings.freeze_backbone,
+            scheduler_t_max=self.settings.scheduler_t_max,
+            loss_name=self.settings.loss_name,
+            label_smoothing=self.settings.label_smoothing,
+            focal_gamma=self.settings.focal_gamma,
+            class_weights=self.settings.class_weights,
         )
         return module.model
 

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ project_name }} Detection Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Forensic Steganalysis Workbench</p>
+        <h1>GhostPixel-AI</h1>
+        <p class="lede">
+          Upload a candidate image, run the trained model, and inspect whether the payload
+          looks like Cover, JMiPOD, JUNIWARD, or UERD.
+        </p>
+      </div>
+      <div class="hero-brand">
+        <img src="/assets/GhosPixelAPI.jpeg" alt="GhostPixel-AI logo">
+      </div>
+    </section>
+
+    <section class="console">
+      <form id="detect-form" class="panel" enctype="multipart/form-data">
+        <label for="file-input" class="dropzone">
+          <input id="file-input" name="file" type="file" accept="image/*" required>
+          <span class="dropzone-title">Choose forensic sample</span>
+          <span class="dropzone-subtitle">JPEG, PNG, TIFF and similar image formats</span>
+        </label>
+        <button id="submit-button" type="submit">Run Detection</button>
+      </form>
+
+      <div class="panel preview-panel">
+        <div class="panel-header">
+          <h2>Preview</h2>
+          <span id="file-name" class="muted">No file selected</span>
+        </div>
+        <div class="preview-frame">
+          <img id="preview-image" alt="Selected image preview">
+          <p id="preview-placeholder">Your uploaded image will appear here.</p>
+        </div>
+      </div>
+
+      <div class="panel result-panel">
+        <div class="panel-header">
+          <h2>Inference Result</h2>
+          <span id="status-pill" class="status-pill idle">Idle</span>
+        </div>
+        <div id="result-empty" class="result-empty">
+          Run an inference to populate the class prediction, confidence, and explainability placeholder.
+        </div>
+        <dl id="result-grid" class="result-grid hidden">
+          <div>
+            <dt>Predicted Class</dt>
+            <dd id="class-name">-</dd>
+          </div>
+          <div>
+            <dt>Confidence</dt>
+            <dd id="confidence-score">-</dd>
+          </div>
+          <div>
+            <dt>Explainability Map</dt>
+            <dd id="explainability-map">-</dd>
+          </div>
+        </dl>
+        <p id="error-message" class="error-message hidden"></p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("detect-form");
+    const input = document.getElementById("file-input");
+    const fileName = document.getElementById("file-name");
+    const previewImage = document.getElementById("preview-image");
+    const previewPlaceholder = document.getElementById("preview-placeholder");
+    const submitButton = document.getElementById("submit-button");
+    const statusPill = document.getElementById("status-pill");
+    const resultEmpty = document.getElementById("result-empty");
+    const resultGrid = document.getElementById("result-grid");
+    const errorMessage = document.getElementById("error-message");
+    const className = document.getElementById("class-name");
+    const confidenceScore = document.getElementById("confidence-score");
+    const explainabilityMap = document.getElementById("explainability-map");
+
+    function setStatus(label, mode) {
+      statusPill.textContent = label;
+      statusPill.className = `status-pill ${mode}`;
+    }
+
+    input.addEventListener("change", () => {
+      const [file] = input.files;
+      if (!file) {
+        fileName.textContent = "No file selected";
+        previewImage.removeAttribute("src");
+        previewImage.style.display = "none";
+        previewPlaceholder.style.display = "block";
+        return;
+      }
+
+      fileName.textContent = file.name;
+      previewImage.src = URL.createObjectURL(file);
+      previewImage.style.display = "block";
+      previewPlaceholder.style.display = "none";
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const [file] = input.files;
+      if (!file) {
+        setStatus("Missing file", "error");
+        errorMessage.textContent = "Select an image before starting detection.";
+        errorMessage.classList.remove("hidden");
+        return;
+      }
+
+      const payload = new FormData();
+      payload.append("file", file);
+
+      submitButton.disabled = true;
+      setStatus("Running", "busy");
+      errorMessage.classList.add("hidden");
+
+      try {
+        const response = await fetch("/detect", {
+          method: "POST",
+          body: payload,
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.detail || "Inference failed.");
+        }
+
+        className.textContent = data.class_name;
+        confidenceScore.textContent = `${(data.confidence_score * 100).toFixed(2)}%`;
+        explainabilityMap.textContent = data.explainability_map || "Pending implementation";
+        resultEmpty.classList.add("hidden");
+        resultGrid.classList.remove("hidden");
+        setStatus("Complete", "success");
+      } catch (error) {
+        resultGrid.classList.add("hidden");
+        resultEmpty.classList.remove("hidden");
+        errorMessage.textContent = error.message;
+        errorMessage.classList.remove("hidden");
+        setStatus("Error", "error");
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

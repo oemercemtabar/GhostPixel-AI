@@ -125,6 +125,10 @@ class GhostPixelDataset(Dataset[dict[str, torch.Tensor | int | str]]):
 
         if self.balance_strategy == "none" or self.split not in {"train", "all"}:
             merged = [idx for indices in class_to_indices.values() for idx in indices]
+            if self.split in {"val", "all"}:
+                rng = random.Random(self.seed)
+                rng.shuffle(merged)
+                return merged
             return sorted(merged)
 
         rng = random.Random(self.seed)
