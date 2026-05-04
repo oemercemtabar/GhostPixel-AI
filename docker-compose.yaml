@@ -1,0 +1,17 @@
+services:
+  ghostpixel-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ghostpixel-api
+    environment:
+      GHOSTPIXEL_APP_ENV: production
+      GHOSTPIXEL_DATA_ROOT: /app/data/raw
+      GHOSTPIXEL_BACKBONE_NAME: efficientnet_v2_s
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./checkpoints:/app/checkpoints
+    restart: unless-stopped
+
